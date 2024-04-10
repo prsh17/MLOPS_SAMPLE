@@ -1,16 +1,25 @@
-name: mlops-dwm-project
-on: [push]
+name: Continuous Integration
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  
+permissions: write-all
 jobs:
-  run:
-    runs-on: [ubuntu-latest]
-    container: docker://pvsh/cml-py3:latest
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: 'Train my model'
+      - uses: actions/checkout@v3
+      - uses: iterative/setup-cml@v2
+      - name: Install Packages
+        run: make install
+      - name: Format
+        run: make format
+      - name: Train
+        run: make train
+      - name: Evaluation
         env:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-
-          # Your ML workflow goes here
-          pip install -r requirements.txt
-          python model.py
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make eval
